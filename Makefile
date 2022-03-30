@@ -1,6 +1,6 @@
 all:
-	c++ -Wall -Wextra -Werror *.cpp -o reforge
+	c++ *.cpp -o reforge
 debug:
-	c++ -Wall -Wextra -Werror -DDEBUG *.cpp -o reforge
+	c++ -Wall -Wextra -Werror -g3 -DDEBUG *.cpp -o reforge
 clean:
 	rm -f reforge

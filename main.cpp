@@ -10,6 +10,8 @@ void log(const T& s) {
 #endif
 }
 
+#define HIT_CAP 400
+#define EXP_CAP 400
 template <class T>
 void logn(const T& s) {
 	log(s);
@@ -130,58 +132,54 @@ string get_enum(int index){
 	}
 }
 
-void find_optimal(const vector<item>& equip)
+void show_vector(vector< vector<item> > equip_list)
 {
-	size_t v_size =	equip.size();
-	vector<item>	optimal(equip);
-	vector<item>	current(equip);
-	for (size_t n = 0; n < v_size; n++)
+	for (size_t n = 0; n < equip_list.size(); n++)
+		show_comp(equip_list[n]);
+}
+
+void find_optimal_R(int index, const vector<item>& equip, vector< vector<item> >& equip_list, vector<item>& current_equip)
+{
+	if (index == 10)
 	{
-		vector<float> stats_in	= get_stats(equip[n]);
-		vector<float> rfrgbl	= get_reforgeable(equip[n]);
-		size_t stats_size		= stats_in.size();
-		size_t rfrgbl_size		= rfrgbl.size();
-
-		for (size_t j = 0; j < stats_size; j++)
+		float stats[5] = {0};
+		size_t curequip_size = current_equip.size();
+		for (size_t n = 0; n < curequip_size; n++)
 		{
-			for (size_t k = 0; k < rfrgbl_size; k++)
-			{
-				current = equip;
-				log("Reforging ");
-				log(current[n].stats[stats_in[j]]);
-				logn(" " + get_enum(stats_in[j]) + " into");
-				log(current[n].stats[stats_in[j]] * 0.6);
-				log(" " + get_enum(stats_in[j]) + " ");
-				log(current[n].stats[stats_in[j]] * 0.4);
-				logn(" " + get_enum(rfrgbl[k]));
+			for(size_t j = 0; j < 5; j++)
+				stats[j] += current_equip[n].stats[j];
+		}
+		if (stats[HIT] >= HIT_CAP && stats[EXP] >= EXP_CAP)
+			equip_list.push_back(current_equip);
+		return;
+	}
+	const item& obj = equip[index];
+	vector<float> stats_in	= get_stats(obj);
+	vector<float> rfrgbl	= get_reforgeable(obj);
+	size_t stats_size		= stats_in.size();
+	size_t rfrgbl_size		= rfrgbl.size();
 
-				current[n].stats[rfrgbl[k]] = (current[n].stats[stats_in[j]] * 0.4);
-				current[n].stats[stats_in[j]] *= 0.6;
-
-				logn("Reforged into");
-				log(current[n].stats[stats_in[j]]);
-				log(" " + get_enum(stats_in[j]) + " ");
-				log(current[n].stats[rfrgbl[k]]);
-				logn(" " + get_enum(rfrgbl[k]));
-				show_comp(current);
-			}
+	item cpy(obj);
+	find_optimal_R(index + 1, equip, equip_list, current_equip);
+	for (size_t j = 0; j < stats_size; j++)
+	{
+		for (size_t k = 0; k < rfrgbl_size; k++)
+		{
+			cpy = obj;
+			cpy.stats[rfrgbl[k]] = (cpy.stats[stats_in[j]] * 0.4);
+			cpy.stats[stats_in[j]] *= 0.6;
+			current_equip[index] = cpy;
+			find_optimal_R(index + 1, equip, equip_list, current_equip);
 		}
 	}
 }
 
-void permute(string a, int l, int r)
+vector< vector<item> > find_optimal2(const vector<item>& equip)
 {
-    if (l == r)
-        cout<<a<<endl;
-    else
-    {
-        for (int i = l; i <= r; i++)
-        {
-            swap(a[l], a[i]);
-            permute(a, l+1, r);
-            swap(a[l], a[i]);
-        }
-    }
+	vector< vector<item> > equip_list;
+	vector<item> current_equip(equip);
+	find_optimal_R(0, equip, equip_list, current_equip);
+	return equip_list;
 }
 
 int main()
@@ -192,7 +190,8 @@ int main()
 		cout << "no database file, ensure a file named 'database' is present and uses correct formating" << endl;
 		return 1;
 	}
-	find_optimal(equip);
+	vector< vector<item> > all_capped = find_optimal2(equip);
+	show_vector(all_capped);
 	save_db(equip);
 	return 0;
 }
