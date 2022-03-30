@@ -10,8 +10,9 @@ void log(const T& s) {
 #endif
 }
 
-#define HIT_CAP 400
-#define EXP_CAP 400
+#define HIT_CAP 500
+#define EXP_CAP 500
+#define NBR 8
 template <class T>
 void logn(const T& s) {
 	log(s);
@@ -140,14 +141,13 @@ void show_vector(vector< vector<item> > equip_list)
 
 void find_optimal_R(int index, const vector<item>& equip, vector< vector<item> >& equip_list, vector<item>& current_equip)
 {
-	if (index == 10)
+	if (index == NBR)
 	{
-		float stats[5] = {0};
-		size_t curequip_size = current_equip.size();
-		for (size_t n = 0; n < curequip_size; n++)
+		array<float, NBR> stats = {0};
+		for (size_t n = 0; n < NBR; n++)
 		{
-			for(size_t j = 0; j < 5; j++)
-				stats[j] += current_equip[n].stats[j];
+			stats[HIT] += current_equip[n].stats[HIT];
+			stats[EXP] += current_equip[n].stats[EXP];
 		}
 		if (stats[HIT] >= HIT_CAP && stats[EXP] >= EXP_CAP)
 			equip_list.push_back(current_equip);
@@ -160,6 +160,7 @@ void find_optimal_R(int index, const vector<item>& equip, vector< vector<item> >
 	size_t rfrgbl_size		= rfrgbl.size();
 
 	item cpy(obj);
+	current_equip[index] = obj;
 	find_optimal_R(index + 1, equip, equip_list, current_equip);
 	for (size_t j = 0; j < stats_size; j++)
 	{
@@ -168,7 +169,7 @@ void find_optimal_R(int index, const vector<item>& equip, vector< vector<item> >
 			cpy = obj;
 			cpy.stats[rfrgbl[k]] = (cpy.stats[stats_in[j]] * 0.4);
 			cpy.stats[stats_in[j]] *= 0.6;
-			current_equip[index] = cpy;
+			current_equip[index] = move(cpy);
 			find_optimal_R(index + 1, equip, equip_list, current_equip);
 		}
 	}
